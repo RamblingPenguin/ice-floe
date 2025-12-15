@@ -42,7 +42,7 @@ public class MermaidGenerator implements IceFloeVisitor {
         sb.append("  subgraph ").append(seqId).append(" [Sequence]\n");
         sb.append("    direction TB\n");
 
-        List<Node<?, ?>> nodes = sequence.getNodes();
+        List<? extends Node<?, ?>> nodes = sequence.getNodes();
         if (nodes.isEmpty()) {
             sb.append("    ").append(seqId).append("_empty[Empty]\n");
             this.lastEntryId = seqId + "_empty";
@@ -69,7 +69,6 @@ public class MermaidGenerator implements IceFloeVisitor {
                 prevExits = childExits;
             }
             this.lastEntryId = seqEntry;
-            this.lastExitIds = prevExits;
         }
         sb.append("  end\n");
     }
