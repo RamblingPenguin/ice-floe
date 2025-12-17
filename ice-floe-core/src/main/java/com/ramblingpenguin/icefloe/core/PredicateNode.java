@@ -48,11 +48,6 @@ public class PredicateNode<INPUT, OUTPUT> implements Node<INPUT, OUTPUT> {
         }
     }
 
-    @Override
-    public void accept(IceFloeVisitor visitor) {
-        visitor.visitPredicate(this);
-    }
-
     public Node<INPUT, OUTPUT> getMatchSequence() {
         return nestedSequence;
     }

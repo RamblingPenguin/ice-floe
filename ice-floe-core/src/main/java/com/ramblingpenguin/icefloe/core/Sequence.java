@@ -19,11 +19,6 @@ public class Sequence<INPUT, OUTPUT> implements Node<INPUT, OUTPUT> {
     }
 
     @Override
-    public void accept(IceFloeVisitor visitor) {
-        visitor.visitSequence(this);
-    }
-
-    @Override
     @SuppressWarnings("unchecked")
     public OUTPUT apply(INPUT input) {
         Object result = input;

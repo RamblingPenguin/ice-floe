@@ -82,11 +82,6 @@ public class ForkSequence<INPUT, FORK_INPUT, FORK_OUTPUT, OUTPUT> implements Nod
         }
     }
 
-    @Override
-    public void accept(IceFloeVisitor visitor) {
-        visitor.visitFork(this);
-    }
-
     public Node<FORK_INPUT, FORK_OUTPUT> getForkNode() {
         return fork;
     }
