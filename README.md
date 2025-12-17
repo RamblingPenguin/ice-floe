@@ -146,3 +146,7 @@ The library revolves around the `Node<INPUT, OUTPUT>` functional interface.
 *   **`ContextualSequence`**: A stateful sequence where each node interacts with a shared context object.
 *   **`PredicateNode`**: A branching node based on a boolean predicate.
 *   **`ForkSequence`**: Splits input, processes parts (optionally in parallel), and aggregates results.
+
+## License
+
+[MIT License](LICENSE)
