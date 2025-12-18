@@ -1,0 +1,50 @@
+package com.ramblingpenguin.icefloe.langchain.node;
+
+import dev.langchain4j.data.message.AiMessage;
+import dev.langchain4j.data.message.ChatMessage;
+import dev.langchain4j.data.message.UserMessage;
+import dev.langchain4j.model.chat.ChatModel;
+import dev.langchain4j.model.chat.request.ChatRequest;
+import dev.langchain4j.model.chat.response.ChatResponse;
+import dev.langchain4j.model.output.Response;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+class ChatModelNodeTest {
+
+    @Test
+    void testFromString() {
+        ChatModel model = mock(ChatModel.class);
+        String prompt = "Hello";
+        String responseContent = "Hi there!";
+        ChatResponse response = ChatResponse.builder().aiMessage(AiMessage.from(responseContent)).build();
+
+        when(model.doChat(any(ChatRequest.class))).thenReturn(response);
+
+        ChatModelNode<String> node = ChatModelNode.fromString(model);
+        ChatResponse result = node.apply(prompt);
+
+        assertEquals(responseContent, result.aiMessage().text());
+    }
+
+    @Test
+    void testFromMessages() {
+        ChatModel model = mock(ChatModel.class);
+        List<ChatMessage> messages = List.of(UserMessage.from("Hello"));
+        String responseContent = "Hi there!";
+        ChatResponse response = ChatResponse.builder().aiMessage(AiMessage.from(responseContent)).build();
+
+        when(model.doChat(any(ChatRequest.class))).thenReturn(response);
+
+        ChatModelNode<List<ChatMessage>> node = ChatModelNode.fromMessages(model);
+        ChatResponse result = node.apply(messages);
+
+        assertEquals(responseContent, result.aiMessage().text());
+    }
+}

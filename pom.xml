@@ -12,9 +12,28 @@
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
+        <aws.sdk.version>2.20.26</aws.sdk.version>
     </properties>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>software.amazon.awssdk</groupId>
+                <artifactId>bom</artifactId>
+                <version>${aws.sdk.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <modules>
+        <!-- Foundational -->
         <module>ice-floe-core</module>
+        <module>ice-floe-service</module>
+
+        <!-- Integrations -->
+        <module>ice-floe-langchain</module>
+        <module>ice-floe-aws</module>
     </modules>
 </project>

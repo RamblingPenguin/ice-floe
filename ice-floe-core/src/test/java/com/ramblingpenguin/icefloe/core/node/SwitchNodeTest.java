@@ -10,41 +10,43 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class SwitchNodeTest {
 
+    record TestRecord(String value) {}
+
     @Test
     void testSelectsCorrectNode() {
-        Node<String, String> nodeA = (input) -> "A";
-        Node<String, String> nodeB = (input) -> "B";
-        Node<String, String> defaultNode = (input) -> "default";
-        Map<String, Node<String, String>> nodes = Map.of("A", nodeA, "B", nodeB);
-        SwitchNode<String, String, String> switchNode = new SwitchNode<>(
-                (input) -> input,
+        Node<TestRecord, TestRecord> nodeA = (input) -> new TestRecord("A");
+        Node<TestRecord, TestRecord> nodeB = (input) -> new TestRecord("B");
+        Node<TestRecord, TestRecord> defaultNode = (input) -> new TestRecord("default");
+        Map<String, Node<TestRecord, TestRecord>> nodes = Map.of("A", nodeA, "B", nodeB);
+        SwitchNode<TestRecord, TestRecord, String> switchNode = new SwitchNode<>(
+                (input) -> input.value(),
                 Function.identity(),
                 nodes,
                 defaultNode
         );
 
-        String resultA = switchNode.apply("A");
-        String resultB = switchNode.apply("B");
+        TestRecord resultA = switchNode.apply(new TestRecord("A"));
+        TestRecord resultB = switchNode.apply(new TestRecord("B"));
 
-        assertEquals("A", resultA);
-        assertEquals("B", resultB);
+        assertEquals("A", resultA.value());
+        assertEquals("B", resultB.value());
     }
 
     @Test
     void testSelectsDefaultNode() {
-        Node<String, String> nodeA = (input) -> "A";
-        Node<String, String> nodeB = (input) -> "B";
-        Node<String, String> defaultNode = (input) -> "default";
-        Map<String, Node<String, String>> nodes = Map.of("A", nodeA, "B", nodeB);
-        SwitchNode<String, String, String> switchNode = new SwitchNode<>(
-                (input) -> input,
+        Node<TestRecord, TestRecord> nodeA = (input) -> new TestRecord("A");
+        Node<TestRecord, TestRecord> nodeB = (input) -> new TestRecord("B");
+        Node<TestRecord, TestRecord> defaultNode = (input) -> new TestRecord("default");
+        Map<String, Node<TestRecord, TestRecord>> nodes = Map.of("A", nodeA, "B", nodeB);
+        SwitchNode<TestRecord, TestRecord, String> switchNode = new SwitchNode<>(
+                (input) -> input.value(),
                 Function.identity(),
                 nodes,
                 defaultNode
         );
 
-        String result = switchNode.apply("C");
+        TestRecord result = switchNode.apply(new TestRecord("C"));
 
-        assertEquals("default", result);
+        assertEquals("default", result.value());
     }
 }

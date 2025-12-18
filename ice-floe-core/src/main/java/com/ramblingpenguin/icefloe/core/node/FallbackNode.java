@@ -14,16 +14,29 @@ public class FallbackNode<INPUT, OUTPUT> implements Node<INPUT, OUTPUT> {
 
     private final Node<INPUT, OUTPUT> primaryNode;
     private final Node<INPUT, OUTPUT> fallbackNode;
+    private final Predicate<Throwable> shouldUseFallback;
 
     /**
-     * Constructs a new fallback node.
+     * Constructs a new fallback node with a predicate to determine if the fallback should be used.
+     *
+     * @param primaryNode       the primary node to execute
+     * @param fallbackNode      the fallback node to execute if the primary node fails
+     * @param shouldUseFallback a predicate to determine if the fallback should be used
+     */
+    public FallbackNode(Node<INPUT, OUTPUT> primaryNode, Node<INPUT, OUTPUT> fallbackNode, Predicate<Throwable> shouldUseFallback) {
+        this.primaryNode = primaryNode;
+        this.fallbackNode = fallbackNode;
+        this.shouldUseFallback = shouldUseFallback;
+    }
+
+    /**
+     * Constructs a new fallback node that always uses the fallback on failure.
      *
      * @param primaryNode  the primary node to execute
      * @param fallbackNode the fallback node to execute if the primary node fails
      */
     public FallbackNode(Node<INPUT, OUTPUT> primaryNode, Node<INPUT, OUTPUT> fallbackNode) {
-        this.primaryNode = primaryNode;
-        this.fallbackNode = fallbackNode;
+        this(primaryNode, fallbackNode, (t) -> true);
     }
 
     @Override
@@ -31,20 +44,11 @@ public class FallbackNode<INPUT, OUTPUT> implements Node<INPUT, OUTPUT> {
         try {
             return this.primaryNode.apply(input);
         } catch (Throwable throwable) {
-            if (shouldUseFallback().test(throwable)) {
+            if (this.shouldUseFallback.test(throwable)) {
                 return this.fallbackNode.apply(input);
             } else {
                 throw throwable;
             }
         }
-    }
-
-    /**
-     * Determines whether the fallback node should be used.
-     *
-     * @return a predicate that returns true if the fallback node should be used, false otherwise
-     */
-    public Predicate<Throwable> shouldUseFallback() {
-        return (t) -> true;
     }
 }

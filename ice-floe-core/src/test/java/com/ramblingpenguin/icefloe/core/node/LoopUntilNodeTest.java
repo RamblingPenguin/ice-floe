@@ -8,40 +8,42 @@ import java.util.function.Predicate;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class LoopUntilNodeTest {
+class LoopWhileNodeTest {
+
+    record TestRecord(String value) {}
 
     @Test
     void testLoopExecutesOnce() {
-        Node<String, String> node = (input) -> "output";
-        Predicate<String> predicate = (output) -> false;
-        LoopWhileNode<String, String> loopWhileNode = new LoopWhileNode<>(node, predicate, 3);
+        Node<TestRecord, TestRecord> node = (input) -> new TestRecord("output");
+        Predicate<TestRecord> predicate = (output) -> false;
+        LoopWhileNode<TestRecord, TestRecord> LoopWhileNode = new LoopWhileNode<>(node, predicate, 3);
 
-        String result = loopWhileNode.apply("input");
+        TestRecord result = LoopWhileNode.apply(new TestRecord("input"));
 
-        assertEquals("output", result);
+        assertEquals("output", result.value());
     }
 
     @Test
     void testLoopExecutesMultipleTimes() {
         AtomicInteger attempts = new AtomicInteger(0);
-        Node<String, String> node = (input) -> "output" + attempts.getAndIncrement();
-        Predicate<String> predicate = (output) -> output.startsWith("output");
-        LoopWhileNode<String, String> loopWhileNode = new LoopWhileNode<>(node, predicate, 3);
+        Node<TestRecord, TestRecord> node = (input) -> new TestRecord("output" + attempts.getAndIncrement());
+        Predicate<TestRecord> predicate = (output) -> output.value().startsWith("output");
+        LoopWhileNode<TestRecord, TestRecord> LoopWhileNode = new LoopWhileNode<>(node, predicate, 3);
 
-        String result = loopWhileNode.apply("input");
+        TestRecord result = LoopWhileNode.apply(new TestRecord("input"));
 
-        assertEquals("output2", result);
+        assertEquals("output2", result.value());
     }
 
     @Test
     void testLoopReachesMaxAttempts() {
         AtomicInteger attempts = new AtomicInteger(0);
-        Node<String, String> node = (input) -> "output" + attempts.getAndIncrement();
-        Predicate<String> predicate = (output) -> true;
-        LoopWhileNode<String, String> loopWhileNode = new LoopWhileNode<>(node, predicate, 3);
+        Node<TestRecord, TestRecord> node = (input) -> new TestRecord("output" + attempts.getAndIncrement());
+        Predicate<TestRecord> predicate = (output) -> true;
+        LoopWhileNode<TestRecord, TestRecord> LoopWhileNode = new LoopWhileNode<>(node, predicate, 3);
 
-        String result = loopWhileNode.apply("input");
+        TestRecord result = LoopWhileNode.apply(new TestRecord("input"));
 
-        assertEquals("output2", result);
+        assertEquals("output2", result.value());
     }
 }

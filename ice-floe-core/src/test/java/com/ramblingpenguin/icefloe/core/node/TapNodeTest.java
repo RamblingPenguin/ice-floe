@@ -9,15 +9,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TapNodeTest {
 
+    record TestRecord(String value) {}
+
     @Test
     void testTap() {
-        AtomicReference<String> tappedValue = new AtomicReference<>();
-        Consumer<String> tap = tappedValue::set;
-        TapNode<String> tapNode = new TapNode<>(tap);
+        AtomicReference<TestRecord> tappedValue = new AtomicReference<>();
+        Consumer<TestRecord> tap = tappedValue::set;
+        TapNode<TestRecord> tapNode = new TapNode<>(tap);
 
-        String result = tapNode.apply("input");
+        TestRecord result = tapNode.apply(new TestRecord("input"));
 
-        assertEquals("input", result);
-        assertEquals("input", tappedValue.get());
+        assertEquals("input", result.value());
+        assertEquals("input", tappedValue.get().value());
     }
 }

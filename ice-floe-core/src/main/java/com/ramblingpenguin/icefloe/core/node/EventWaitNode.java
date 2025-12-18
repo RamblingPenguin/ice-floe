@@ -4,37 +4,58 @@ import com.ramblingpenguin.glacier.observe.Listener;
 import com.ramblingpenguin.glacier.observe.Observable;
 import com.ramblingpenguin.icefloe.core.Node;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 
-public class EventWaitNode<INPUT, EVENT> implements Node<INPUT, EVENT>, Listener<EVENT> {
+/**
+ * A node that waits for an external event to occur, designed to be stateless and thread-safe.
+ * It eliminates race conditions by using a Phaser to synchronize listener registration and waiting.
+ *
+ * @param <INPUT>  The input type (often ignored, but required by the Node interface).
+ * @param <EVENT>  The type of the event to wait for.
+ */
+public class EventWaitNode<INPUT, EVENT> implements Node<INPUT, EVENT> {
 
     private final long timeout;
     private final TimeUnit timeUnit;
     private final Observable<Listener<EVENT>> observable;
-    private final CompletableFuture<EVENT> future;
 
     public EventWaitNode(long timeout, TimeUnit timeUnit, Observable<Listener<EVENT>> observable) {
         this.timeout = timeout;
         this.timeUnit = timeUnit;
         this.observable = observable;
-        this.future = new CompletableFuture<>();
-    }
-
-    @Override
-    public void onEvent(EVENT event) {
-        this.future.complete(event);
     }
 
     @Override
     public EVENT apply(INPUT input) {
-        this.observable.addListener(this);
+        final CompletableFuture<EVENT> future = new CompletableFuture<>();
+        final Phaser phaser = new Phaser(1);
+
+        Listener<EVENT> listener = event -> {
+            future.complete(event);
+            phaser.arriveAndDeregister();
+        };
+
+        observable.addListener(listener);
+
         try {
-            return this.future.get(this.timeout, this.timeUnit);
+            // Arrive and wait for the event to arrive (or for timeout).
+            // This creates a rendezvous point. If the event thread arrives here first,
+            // it will wait for this thread. If this thread arrives first, it will wait for the event.
+            phaser.awaitAdvanceInterruptibly(phaser.arrive(), this.timeout, this.timeUnit);
+            if (future.isDone()) {
+                return future.get();
+            } else {
+                throw new TimeoutException("Timed out waiting for event.");
+            }
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw new RuntimeException(e);
+            future.cancel(true); // Ensure the future is cancelled on failure.
+            throw new RuntimeException("Failed while waiting for event.", e);
+        } finally {
+            // Crucially, always remove the listener to prevent memory leaks.
+            observable.removeListener(listener);
+            if (!phaser.isTerminated()) {
+                phaser.forceTermination();
+            }
         }
     }
 }

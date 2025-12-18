@@ -8,43 +8,40 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class FallbackNodeTest {
 
+    record TestRecord(String value) {}
+
     @Test
     void testPrimaryNodeSucceeds() {
-        Node<String, String> primaryNode = (input) -> "primary";
-        Node<String, String> fallbackNode = (input) -> "fallback";
-        FallbackNode<String, String> fallback = new FallbackNode<>(primaryNode, fallbackNode);
+        Node<TestRecord, TestRecord> primaryNode = (input) -> new TestRecord("primary");
+        Node<TestRecord, TestRecord> fallbackNode = (input) -> new TestRecord("fallback");
+        FallbackNode<TestRecord, TestRecord> fallback = new FallbackNode<>(primaryNode, fallbackNode);
 
-        String result = fallback.apply("input");
+        TestRecord result = fallback.apply(new TestRecord("input"));
 
-        assertEquals("primary", result);
+        assertEquals("primary", result.value());
     }
 
     @Test
     void testPrimaryNodeFailsAndFallbackSucceeds() {
-        Node<String, String> primaryNode = (input) -> {
+        Node<TestRecord, TestRecord> primaryNode = (input) -> {
             throw new RuntimeException("primary failed");
         };
-        Node<String, String> fallbackNode = (input) -> "fallback";
-        FallbackNode<String, String> fallback = new FallbackNode<>(primaryNode, fallbackNode);
+        Node<TestRecord, TestRecord> fallbackNode = (input) -> new TestRecord("fallback");
+        FallbackNode<TestRecord, TestRecord> fallback = new FallbackNode<>(primaryNode, fallbackNode);
 
-        String result = fallback.apply("input");
+        TestRecord result = fallback.apply(new TestRecord("input"));
 
-        assertEquals("fallback", result);
+        assertEquals("fallback", result.value());
     }
 
     @Test
     void testPrimaryNodeFailsAndShouldUseFallbackIsFalse() {
-        Node<String, String> primaryNode = (input) -> {
+        Node<TestRecord, TestRecord> primaryNode = (input) -> {
             throw new RuntimeException("primary failed");
         };
-        Node<String, String> fallbackNode = (input) -> "fallback";
-        FallbackNode<String, String> fallback = new FallbackNode<>(primaryNode, fallbackNode) {
-            @Override
-            public java.util.function.Predicate<Throwable> shouldUseFallback() {
-                return (t) -> false;
-            }
-        };
+        Node<TestRecord, TestRecord> fallbackNode = (input) -> new TestRecord("fallback");
+        FallbackNode<TestRecord, TestRecord> fallback = new FallbackNode<>(primaryNode, fallbackNode, t -> false);
 
-        assertThrows(RuntimeException.class, () -> fallback.apply("input"));
+        assertThrows(RuntimeException.class, () -> fallback.apply(new TestRecord("input")));
     }
 }

@@ -10,40 +10,42 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class RetryNodeTest {
 
+    record TestRecord(String value) {}
+
     @Test
     void testExecutesSuccessfullyOnFirstAttempt() {
-        Node<String, String> node = (input) -> "output";
-        RetryNode<String, String> retryNode = new RetryNode<>(node, 3);
+        Node<TestRecord, TestRecord> node = (input) -> new TestRecord("output");
+        RetryNode<TestRecord, TestRecord> retryNode = new RetryNode<>(node, 3);
 
-        String result = retryNode.apply("input");
+        TestRecord result = retryNode.apply(new TestRecord("input"));
 
-        assertEquals("output", result);
+        assertEquals("output", result.value());
     }
 
     @Test
     void testExecutesSuccessfullyAfterAFewRetries() {
         AtomicInteger attempts = new AtomicInteger(0);
-        Node<String, String> node = (input) -> {
+        Node<TestRecord, TestRecord> node = (input) -> {
             if (attempts.getAndIncrement() < 2) {
                 throw new RuntimeException("failed");
             }
-            return "output";
+            return new TestRecord("output");
         };
-        RetryNode<String, String> retryNode = new RetryNode<>(node, 3);
+        RetryNode<TestRecord, TestRecord> retryNode = new RetryNode<>(node, 3);
 
-        String result = retryNode.apply("input");
+        TestRecord result = retryNode.apply(new TestRecord("input"));
 
-        assertEquals("output", result);
+        assertEquals("output", result.value());
         assertEquals(3, attempts.get());
     }
 
     @Test
     void testFailsAfterAllRetries() {
-        Node<String, String> node = (input) -> {
+        Node<TestRecord, TestRecord> node = (input) -> {
             throw new RuntimeException("failed");
         };
-        RetryNode<String, String> retryNode = new RetryNode<>(node, 3);
+        RetryNode<TestRecord, TestRecord> retryNode = new RetryNode<>(node, 3);
 
-        assertThrows(RuntimeException.class, () -> retryNode.apply("input"));
+        assertThrows(RuntimeException.class, () -> retryNode.apply(new TestRecord("input")));
     }
 }
