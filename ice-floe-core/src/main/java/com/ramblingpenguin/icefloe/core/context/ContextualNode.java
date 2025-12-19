@@ -2,6 +2,7 @@ package com.ramblingpenguin.icefloe.core.context;
 
 import com.ramblingpenguin.icefloe.core.Node;
 
+import java.io.Serializable;
 import java.util.UUID;
 import java.util.function.Function;
 
@@ -13,7 +14,7 @@ import java.util.function.Function;
  * @param <INPUT>  The input type of the wrapped node.
  * @param <OUTPUT> The output type of the wrapped node.
  */
-public class ContextualNode<INPUT, OUTPUT> implements Node<SequenceContext, SequenceContext> {
+public class ContextualNode<INPUT, OUTPUT extends Serializable> implements Node<SequenceContext, SequenceContext> {
 
     private final Node<INPUT, OUTPUT> wrappedNode;
     private final Function<SequenceContext, INPUT> inputExtractor;
@@ -45,7 +46,7 @@ public class ContextualNode<INPUT, OUTPUT> implements Node<SequenceContext, Sequ
     /**
      * Creates a {@code ContextualNode} with a specified static key.
      */
-    public static <INPUT, OUTPUT> ContextualNode<INPUT, OUTPUT> of(NodeKey<OUTPUT> nodeKey,
+    public static <INPUT, OUTPUT extends Serializable> ContextualNode<INPUT, OUTPUT> of(NodeKey<OUTPUT> nodeKey,
                                                                    Function<SequenceContext, INPUT> inputExtractor,
                                                                    Node<INPUT, OUTPUT> wrappedNode) {
         return new ContextualNode<>(nodeKey, inputExtractor, wrappedNode);
@@ -54,7 +55,7 @@ public class ContextualNode<INPUT, OUTPUT> implements Node<SequenceContext, Sequ
     /**
      * Creates a {@code ContextualNode} with a generated, unique static key.
      */
-    public static <INPUT, OUTPUT> ContextualNode<INPUT, OUTPUT> of(Class<OUTPUT> outputType,
+    public static <INPUT, OUTPUT extends Serializable> ContextualNode<INPUT, OUTPUT> of(Class<OUTPUT> outputType,
                                                                    Function<SequenceContext, INPUT> inputExtractor,
                                                                    Node<INPUT, OUTPUT> wrappedNode) {
         return new ContextualNode<>(new NodeKey<>(UUID.randomUUID().toString(), outputType),

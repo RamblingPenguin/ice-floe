@@ -1,6 +1,6 @@
 package com.ramblingpenguin.icefloe.core.context;
 
-import com.ramblingpenguin.icefloe.core.ForkSequence;
+import com.ramblingpenguin.icefloe.core.node.ForkSequence;
 import com.ramblingpenguin.icefloe.core.Node;
 
 import java.util.Collection;

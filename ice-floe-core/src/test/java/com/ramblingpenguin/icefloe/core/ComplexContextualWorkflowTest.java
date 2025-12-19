@@ -7,6 +7,7 @@ import com.ramblingpenguin.icefloe.core.context.SequenceContext;
 import com.ramblingpenguin.icefloe.core.node.RetryNode;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -20,12 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 public class ComplexContextualWorkflowTest {
 
     // --- Data Records for the Workflow ---
-    public record OrderRequest(String productId, int quantity, String customerId) {}
-    public record ProductDetails(String productId, String productName, BigDecimal price) {}
-    public record CustomerDetails(String customerId, String customerName) {}
-    public record OrderTotal(BigDecimal total) {}
-    public record ApprovalStatus(String status) {}
-    public record FinalOrderSummary(String customerName, String productName, int quantity, BigDecimal total, String approvalStatus) {}
+    public record OrderRequest(String productId, int quantity, String customerId) implements Serializable {}
+    public record ProductDetails(String productId, String productName, BigDecimal price) implements Serializable {}
+    public record CustomerDetails(String customerId, String customerName) implements Serializable {}
+    public record OrderTotal(BigDecimal total) implements Serializable {}
+    public record ApprovalStatus(String status) implements Serializable {}
+    public record FinalOrderSummary(String customerName, String productName, int quantity, BigDecimal total, String approvalStatus) implements Serializable {}
 
     // --- Node Keys for Context Access ---
     private static final NodeKey<OrderRequest> ORDER_REQUEST_KEY = new NodeKey<>("initial", OrderRequest.class);

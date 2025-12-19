@@ -14,13 +14,11 @@ import java.util.function.BiFunction;
  *
  * @param id         The unique identifier for this key.
  * @param outputType The class of the value associated with this key.
- * @param combiner   A function to resolve merge conflicts. If not provided, a default is used.
  * @param <OUTPUT_TYPE> The type of the value associated with this key.
  */
 public record NodeKey<OUTPUT_TYPE>(
         String id,
-        Class<OUTPUT_TYPE> outputType,
-        BiFunction<OUTPUT_TYPE, OUTPUT_TYPE, OUTPUT_TYPE> combiner
+        Class<OUTPUT_TYPE> outputType
 ) {
 
     private static final BiFunction<?, ?, ?> THROWING_COMBINER = (v1, v2) -> {
@@ -47,23 +45,10 @@ public record NodeKey<OUTPUT_TYPE>(
      *
      * @param id         The unique identifier.
      * @param outputType The class of the value.
-     * @param combiner   The custom merge strategy.
-     */
-    public NodeKey(String id, Class<OUTPUT_TYPE> outputType, BiFunction<OUTPUT_TYPE, OUTPUT_TYPE, OUTPUT_TYPE> combiner) {
-        this.id = id;
-        this.outputType = outputType;
-        this.combiner = combiner != null ? combiner : getDefaultCombiner(outputType);
-    }
-
-    /**
-     * Creates a new NodeKey with a specific ID and a default combiner.
-     * The default combiner will merge collections or throw an exception for other types.
-     *
-     * @param id         The unique identifier.
-     * @param outputType The class of the value.
      */
     public NodeKey(String id, Class<OUTPUT_TYPE> outputType) {
-        this(id, outputType, null);
+        this.id = id;
+        this.outputType = outputType;
     }
 
     /**

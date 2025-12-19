@@ -1,5 +1,6 @@
 package com.ramblingpenguin.icefloe.core;
 
+import com.ramblingpenguin.icefloe.core.node.ForkSequence;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

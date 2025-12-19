@@ -32,19 +32,4 @@ class ChatModelNodeTest {
 
         assertEquals(responseContent, result.aiMessage().text());
     }
-
-    @Test
-    void testFromMessages() {
-        ChatModel model = mock(ChatModel.class);
-        List<ChatMessage> messages = List.of(UserMessage.from("Hello"));
-        String responseContent = "Hi there!";
-        ChatResponse response = ChatResponse.builder().aiMessage(AiMessage.from(responseContent)).build();
-
-        when(model.doChat(any(ChatRequest.class))).thenReturn(response);
-
-        ChatModelNode<List<ChatMessage>> node = ChatModelNode.fromMessages(model);
-        ChatResponse result = node.apply(messages);
-
-        assertEquals(responseContent, result.aiMessage().text());
-    }
 }

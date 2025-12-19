@@ -3,14 +3,16 @@ package com.ramblingpenguin.icefloe.core.context;
 import com.ramblingpenguin.icefloe.core.Node;
 import org.junit.jupiter.api.Test;
 
+import java.io.Serializable;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class ContextualSequenceTest {
 
     // --- Test Records ---
-    public record InitialInput(String message) {}
-    public record WordCount(int count) {}
-    public record UppercaseMessage(String message) {}
+    public record InitialInput(String message) implements Serializable {}
+    public record WordCount(int count) implements Serializable {}
+    public record UppercaseMessage(String message) implements Serializable {}
 
     @Test
     public void testContextualSequenceWithNodes() {

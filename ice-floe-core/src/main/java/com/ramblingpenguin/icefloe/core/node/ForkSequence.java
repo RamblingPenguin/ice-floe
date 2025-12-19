@@ -1,4 +1,6 @@
-package com.ramblingpenguin.icefloe.core;
+package com.ramblingpenguin.icefloe.core.node;
+
+import com.ramblingpenguin.icefloe.core.Node;
 
 import java.util.Collection;
 import java.util.List;
@@ -10,19 +12,19 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * A composite {@link Node} that implements a "scatter-gather" or "map-reduce" pattern.
+ * A composite {@link com.ramblingpenguin.icefloe.core.Node} that implements a "scatter-gather" or "map-reduce" pattern.
  *
  * @param <INPUT>       The type of the initial input.
  * @param <FORK_INPUT>  The type of the items after splitting the input.
  * @param <FORK_OUTPUT> The type of the result from processing a single item.
  * @param <OUTPUT>      The final aggregated output type.
  */
-public class ForkSequence<INPUT, FORK_INPUT, FORK_OUTPUT, OUTPUT> implements Node<INPUT, OUTPUT> {
+public class ForkSequence<INPUT, FORK_INPUT, FORK_OUTPUT, OUTPUT> implements com.ramblingpenguin.icefloe.core.Node<INPUT, OUTPUT> {
 
     protected static final Executor DEFAULT_EXECUTOR = Executors.newVirtualThreadPerTaskExecutor();
 
     protected final Function<INPUT, Collection<FORK_INPUT>> inputMapper;
-    protected final Node<FORK_INPUT, FORK_OUTPUT> fork;
+    protected final com.ramblingpenguin.icefloe.core.Node<FORK_INPUT, FORK_OUTPUT> fork;
     protected final Function<INPUT, OUTPUT> initialOutputFactory;
     protected final BiFunction<OUTPUT, FORK_OUTPUT, OUTPUT> outputReducer;
     protected final boolean isParallel;
@@ -63,13 +65,13 @@ public class ForkSequence<INPUT, FORK_INPUT, FORK_OUTPUT, OUTPUT> implements Nod
 
     public static <INPUT, FORK_INPUT, FORK_OUTPUT> Builder<INPUT, FORK_INPUT, FORK_OUTPUT, ?> builder(
             Function<INPUT, Collection<FORK_INPUT>> inputMapper,
-            Node<FORK_INPUT, FORK_OUTPUT> fork) {
+            com.ramblingpenguin.icefloe.core.Node<FORK_INPUT, FORK_OUTPUT> fork) {
         return new Builder<>(inputMapper, fork);
     }
 
     public static class Builder<INPUT, FORK_INPUT, FORK_OUTPUT, OUTPUT> {
         private Function<INPUT, Collection<FORK_INPUT>> inputMapper;
-        private Node<FORK_INPUT, FORK_OUTPUT> fork;
+        private com.ramblingpenguin.icefloe.core.Node<FORK_INPUT, FORK_OUTPUT> fork;
         private Function<INPUT, OUTPUT> initialOutputFactory;
         private BiFunction<OUTPUT, FORK_OUTPUT, OUTPUT> outputReducer;
         private boolean isParallel = false;

@@ -3,6 +3,8 @@ package com.ramblingpenguin.icefloe.core.context;
 import com.ramblingpenguin.icefloe.core.Node;
 import com.ramblingpenguin.icefloe.core.Sequence;
 
+import java.io.Serializable;
+
 /**
  * A type-safe, stateful sequence of nodes that pass an immutable {@link SequenceContext}
  * through a compositional chain. Each node receives the context from the previous step
@@ -38,7 +40,7 @@ public class ContextualSequence<INPUT> extends Sequence<INPUT, SequenceContext> 
          * @param <T>       The type of the initial input.
          * @return A new builder instance.
          */
-        public static <T> Builder<T> of(Class<T> inputType) {
+        public static <T extends Serializable> Builder<T> of(Class<T> inputType) {
             Sequence.Builder<T, SequenceContext> initialBuilder = Sequence.Builder
                     .of(inputType)
                     .then(SequenceContext::fromInitialInput);
@@ -78,7 +80,7 @@ public class ContextualSequence<INPUT> extends Sequence<INPUT, SequenceContext> 
          * @param <OUTPUT> The output type of the node.
          * @return This builder instance for chaining.
          */
-        public <OUTPUT> Builder<SEQUENCE_INPUT> then(NodeKey<OUTPUT> nodeKey, Node<SequenceContext, OUTPUT> func) {
+        public <OUTPUT extends Serializable> Builder<SEQUENCE_INPUT> then(NodeKey<OUTPUT> nodeKey, Node<SequenceContext, OUTPUT> func) {
             ContextualNode<SequenceContext, OUTPUT> node = ContextualNode.of(nodeKey, ctx -> ctx, func);
             return then(node);
         }

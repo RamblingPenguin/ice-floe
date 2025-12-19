@@ -45,16 +45,4 @@ public class ChatModelNode<INPUT> implements Node<INPUT, ChatResponse> {
                 .messages(new UserMessage(s))
                 .build()));
     }
-
-    /**
-     * Creates a ChatModelNode that accepts a List of ChatMessages.
-     *
-     * @param model The ChatModel to use.
-     * @return A new ChatModelNode.
-     */
-    public static ChatModelNode<List<ChatMessage>> fromMessages(ChatModel model) {
-        return new ChatModelNode<>(model, messages -> model.doChat(ChatRequest.builder()
-                .messages(messages)
-                .build()));
-    }
 }
