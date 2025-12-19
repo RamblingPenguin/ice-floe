@@ -36,81 +36,93 @@ Integer result = pipeline.apply("10"); // Output: 25
 Build complex workflows where nodes can access the output of any previous node via a thread-safe, immutable context.
 
 ```java
-import com.ramblingpenguin.icefloe.core.context.*;
+
 
 // 1. Define data records
-public record InitialInput(String message) {}
-public record WordCount(int count) {}
-public record Uppercase(String upperMessage) {}
 
-// 2. Define keys to access data in the context
-NodeKey<InitialInput> initialInputKey = new NodeKey<>("initial", InitialInput.class);
-NodeKey<WordCount> wordCountKey = new NodeKey<>("word-counter", WordCount.class);
-NodeKey<Uppercase> uppercaseKey = new NodeKey<>("uppercaser", Uppercase.class);
+public record InitialInput(String message) {
+}
 
-// 3. Build the sequence
-ContextualSequence<InitialInput> sequence = ContextualSequence.Builder.of(InitialInput.class)
-    // First node: takes the initial input and produces a WordCount
-    .then(ContextualNode.of(
-        wordCountKey,
-        ctx -> ctx.get(initialInputKey).orElseThrow(), // Input extractor
-        (InitialInput input) -> new WordCount(input.message().split("\\s+").length) // Node logic
-    ))
-    // Second node: takes the initial input and produces an Uppercase message
-    .then(ContextualNode.of(
-        uppercaseKey,
-        ctx -> ctx.get(initialInputKey).orElseThrow(), // Input extractor
-        (InitialInput input) -> new Uppercase(input.message().toUpperCase()) // Node logic
-    ))
-    .build();
+        public record WordCount(int count) {
+        }
 
-// 4. Execute and retrieve results
-SequenceContext finalContext = sequence.apply(new InitialInput("Hello from the contextual world"));
+        public record Uppercase(String upperMessage) {
+        }
 
-int count = finalContext.get(wordCountKey).orElseThrow().count(); // 5
-String upper = finalContext.get(uppercaseKey).orElseThrow().upperMessage(); // "HELLO FROM THE CONTEXTUAL WORLD"
+        // 2. Define keys to access data in the context
+        NodeKey<InitialInput> initialInputKey = new NodeKey<>("initial", InitialInput.class);
+        NodeKey<WordCount> wordCountKey = new NodeKey<>("word-counter", WordCount.class);
+        NodeKey<Uppercase> uppercaseKey = new NodeKey<>("uppercaser", Uppercase.class);
+
+        // 3. Build the sequence
+        ContextualSequence<InitialInput> sequence = ContextualSequence.Builder.of(InitialInput.class)
+                // "Transformer" node: takes InitialInput, produces WordCount
+                .then(
+                        initialInputKey,
+                        wordCountKey,
+                        input -> new WordCount(input.message().split("\\s+").length)
+                )
+                // Another "Transformer" node: takes InitialInput, produces Uppercase
+                .then(
+                        initialInputKey,
+                        uppercaseKey,
+                        input -> new Uppercase(input.message().toUpperCase())
+                )
+                .build();
+
+        // 4. Execute and retrieve results
+        SequenceContext finalContext = sequence.apply(new InitialInput("Hello from the contextual world"));
+
+        int count = finalContext.get(wordCountKey).orElseThrow().count(); // 5
+        String upper = finalContext.get(uppercaseKey).orElseThrow().upperMessage(); // "HELLO FROM THE CONTEXTUAL WORLD"
 ```
 
 ### 3. Parallel Contextual Fork-Join
 Use `ContextualForkSequence` to process items in parallel and automatically merge their results back into the main context.
 
 ```java
-import com.ramblingpenguin.icefloe.core.context.*;
+
 import java.util.Collection;
 import java.util.List;
 
 // 1. Define data records
-public record UserId(String id) {}
-public record UserProfile(String profile) {}
-public record InitialData(List<UserId> userIds) {}
 
-// 2. Define keys
-NodeKey<InitialData> initialDataKey = new NodeKey<>("initial", InitialData.class);
-// The output type is a Collection, so the results will be automatically merged into a single list.
-@SuppressWarnings("unchecked")
-NodeKey<Collection<UserProfile>> profilesKey = new NodeKey<>("profiles", (Class<Collection<UserProfile>>)(Class<?>)Collection.class);
+public record UserId(String id) {
+}
 
-// 3. Define the logic for a single parallel task
-Node<UserId, SequenceContext> fetchProfileNode = userId -> {
-    UserProfile profile = new UserProfile("Profile for " + userId.id());
-    // Each fork returns a mini-context containing its result.
-    return SequenceContext.empty().put(profilesKey, List.of(profile));
-};
+        public record UserProfile(String profile) {
+        }
 
-// 4. Build the fork-join sequence
-ContextualForkSequence<UserId> forkSequence = ContextualForkSequence.contextualBuilder(
-    ctx -> ctx.get(initialDataKey).orElseThrow().userIds(), // Scatter: get user IDs from context
-    fetchProfileNode                                      // Gather: run this node for each user ID
-).build();
+        public record InitialData(List<UserId> userIds) {
+        }
 
-// 5. Build and run the main sequence
-ContextualSequence<InitialData> mainSequence = ContextualSequence.Builder.of(InitialData.class)
-    .then(forkSequence)
-    .build();
+        // 2. Define keys
+        NodeKey<InitialData> initialDataKey = new NodeKey<>("initial", InitialData.class);
+        // The output type is a Collection, so the results will be automatically merged into a single list.
+        @SuppressWarnings("unchecked")
+        NodeKey<Collection<UserProfile>> profilesKey = new NodeKey<>("profiles", (Class<Collection<UserProfile>>) (Class<?>) Collection.class);
 
-SequenceContext finalContext = mainSequence.apply(new InitialData(List.of(new UserId("user1"), new UserId("user2"))));
+        // 3. Define the logic for a single parallel task
+        Node<UserId, SequenceContext> fetchProfileNode = userId -> {
+            UserProfile profile = new UserProfile("Profile for " + userId.id());
+            // Each fork returns a mini-context containing its result.
+            return SequenceContext.empty().put(profilesKey, List.of(profile));
+        };
 
-// 6. Assert the aggregated results
-Collection<UserProfile> allProfiles = finalContext.get(profilesKey).orElseThrow();
+        // 4. Build the fork-join sequence
+        ContextualForkSequence<UserId> forkSequence = ContextualForkSequence.contextualBuilder(
+                ctx -> ctx.get(initialDataKey).orElseThrow().userIds(), // Scatter: get user IDs from context
+                fetchProfileNode                                      // Gather: run this node for each user ID
+        ).build();
+
+        // 5. Build and run the main sequence
+        ContextualSequence<InitialData> mainSequence = ContextualSequence.Builder.of(InitialData.class)
+                .then(forkSequence)
+                .build();
+
+        SequenceContext finalContext = mainSequence.apply(new InitialData(List.of(new UserId("user1"), new UserId("user2"))));
+
+        // 6. Assert the aggregated results
+        Collection<UserProfile> allProfiles = finalContext.get(profilesKey).orElseThrow();
 // allProfiles contains [UserProfile["Profile for user1"], UserProfile["Profile for user2"]]
 ```

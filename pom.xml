@@ -30,7 +30,7 @@
     <modules>
         <!-- Foundational -->
         <module>ice-floe-core</module>
-        <module>ice-floe-service</module>
+        <module>ice-floe-context</module>
 
         <!-- Integrations -->
         <module>ice-floe-langchain</module>

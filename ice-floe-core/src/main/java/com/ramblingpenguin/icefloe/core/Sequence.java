@@ -67,6 +67,11 @@ public class Sequence<INPUT, OUTPUT> implements Node<INPUT, OUTPUT> {
             return new Builder<>(input -> input);
         }
 
+        public static <T, O> Builder<T, O> of(@SuppressWarnings("unused") Class<T> inputType, Node<T, O> func) {
+            // The initial node is an identity function.
+            return new Builder<>(func);
+        }
+
         /**
          * Appends a new node to the sequence.
          *

@@ -2,6 +2,12 @@
 
 **Ice Floe** is a lightweight, composable, and provably type-safe execution pipeline library for **Java 21**. It allows you to build complex processing flows where every component—whether a linear sequence, a conditional branch, or a parallel scatter-gather operation—is a `Node` that can be composed with compile-time safety.
 
+
+## Motivation
+There are many options out there to build process flows in Java, and I have used many of these in my career. Many of 
+these tools were so flexible they became delicate, or so rigid they closed off any possibility of useful reusability.
+Ice-Floe is my opinionated approach to this problem.
+
 ## Core Philosophy
 
 *   **Composition over Inheritance**: Build complex workflows by combining simple, reusable nodes.
@@ -28,20 +34,20 @@ NodeKey<InitialInput> initialInputKey = new NodeKey<>("initial", InitialInput.cl
 NodeKey<WordCount> wordCountKey = new NodeKey<>("word-counter", WordCount.class);
 NodeKey<Uppercase> uppercaseKey = new NodeKey<>("uppercaser", Uppercase.class);
 
-// 3. Build the pipeline
+// 3. Build the pipeline using the streamlined builder
 ContextualSequence<InitialInput> pipeline = ContextualSequence.Builder.of(InitialInput.class)
-    // The first node takes the initial input and produces a WordCount
-    .then(ContextualNode.of(
+    // "Transformer" node: takes InitialInput, produces WordCount
+    .then(
+        initialInputKey,
         wordCountKey,
-        ctx -> ctx.get(initialInputKey).orElseThrow(), // Input extractor
-        (InitialInput input) -> new WordCount(input.message().split("\\s+").length) // Node logic
-    ))
-    // The second node also takes the initial input and produces an Uppercase message
-    .then(ContextualNode.of(
+        input -> new WordCount(input.message().split("\\s+").length)
+    )
+    // Another "Transformer" node: takes InitialInput, produces Uppercase
+    .then(
+        initialInputKey,
         uppercaseKey,
-        ctx -> ctx.get(initialInputkey).orElseThrow(), // Input extractor
-        (InitialInput input) -> new Uppercase(input.message().toUpperCase()) // Node logic
-    ))
+        input -> new Uppercase(input.message().toUpperCase())
+    )
     .build();
 
 // 4. Execute and retrieve results
