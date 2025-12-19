@@ -1,10 +1,7 @@
 package com.ramblingpenguin.icefloe.context;
 
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Objects;
 import java.util.UUID;
-import java.util.function.BiFunction;
 
 /**
  * A type-safe key for storing and retrieving values in a {@link SequenceContext}.

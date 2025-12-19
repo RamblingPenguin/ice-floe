@@ -9,10 +9,12 @@ import dev.langchain4j.model.output.Response;
 import java.util.function.Function;
 
 /**
- * A node that interacts with a LangChain4j {@link EmbeddingModel}.
- * It can take either a single String or a {@link TextSegment} as input.
+ * A {@link Node} implementation that wraps a LangChain4j {@link EmbeddingModel}.
+ * <p>
+ * This node is used to generate vector embeddings from text. It supports inputs as either
+ * a raw {@link String} or a structured {@link TextSegment}.
  *
- * @param <INPUT> The input type, typically String or TextSegment.
+ * @param <INPUT> The type of input this node accepts. Typically {@link String} or {@link TextSegment}.
  */
 public class EmbeddingNode<INPUT> implements Node<INPUT, Response<Embedding>> {
 
@@ -24,26 +26,32 @@ public class EmbeddingNode<INPUT> implements Node<INPUT, Response<Embedding>> {
         this.modelExecutor = modelExecutor;
     }
 
+    /**
+     * Executes the wrapped {@link EmbeddingModel} to generate an embedding for the input.
+     *
+     * @param input The text or segment to embed.
+     * @return A {@link Response} containing the generated {@link Embedding}.
+     */
     @Override
     public Response<Embedding> apply(INPUT input) {
         return modelExecutor.apply(input);
     }
 
     /**
-     * Creates an EmbeddingNode that accepts a single String.
+     * Creates an {@code EmbeddingNode} that accepts a single {@link String}.
      *
-     * @param model The EmbeddingModel to use.
-     * @return A new EmbeddingNode.
+     * @param model The {@link EmbeddingModel} instance to use.
+     * @return A new {@code EmbeddingNode} accepting {@link String} input.
      */
     public static EmbeddingNode<String> fromString(EmbeddingModel model) {
         return new EmbeddingNode<>(model, model::embed);
     }
 
     /**
-     * Creates an EmbeddingNode that accepts a TextSegment.
+     * Creates an {@code EmbeddingNode} that accepts a {@link TextSegment}.
      *
-     * @param model The EmbeddingModel to use.
-     * @return A new EmbeddingNode.
+     * @param model The {@link EmbeddingModel} instance to use.
+     * @return A new {@code EmbeddingNode} accepting {@link TextSegment} input.
      */
     public static EmbeddingNode<TextSegment> fromTextSegment(EmbeddingModel model) {
         return new EmbeddingNode<>(model, model::embed);

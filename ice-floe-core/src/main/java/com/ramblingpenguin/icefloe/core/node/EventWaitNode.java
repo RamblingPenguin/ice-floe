@@ -1,7 +1,5 @@
 package com.ramblingpenguin.icefloe.core.node;
 
-import com.ramblingpenguin.glacier.observe.Listener;
-import com.ramblingpenguin.glacier.observe.Observable;
 import com.ramblingpenguin.icefloe.core.Node;
 
 import java.util.concurrent.*;
@@ -15,14 +13,37 @@ import java.util.concurrent.*;
  */
 public class EventWaitNode<INPUT, EVENT> implements Node<INPUT, EVENT> {
 
+    public abstract static class SimpleSubscriber<EVENT> implements Flow.Subscriber<EVENT> {
+
+        private Flow.Subscription subscription;
+
+        @Override
+        public void onSubscribe(Flow.Subscription subscription) {
+            this.subscription = subscription;
+            subscription.request(1);
+        }
+
+        @Override
+        public void onError(Throwable throwable) {
+
+        }
+
+        @Override
+        public void onComplete() {
+            if (subscription != null) {
+                subscription.cancel();
+            }
+        }
+    }
+
     private final long timeout;
     private final TimeUnit timeUnit;
-    private final Observable<Listener<EVENT>> observable;
+    private final Flow.Publisher<EVENT> eventPublisher;
 
-    public EventWaitNode(long timeout, TimeUnit timeUnit, Observable<Listener<EVENT>> observable) {
+    public EventWaitNode(long timeout, TimeUnit timeUnit, Flow.Publisher<EVENT> eventPublisher) {
         this.timeout = timeout;
         this.timeUnit = timeUnit;
-        this.observable = observable;
+        this.eventPublisher = eventPublisher;
     }
 
     @Override
@@ -31,19 +52,20 @@ public class EventWaitNode<INPUT, EVENT> implements Node<INPUT, EVENT> {
         // Phaser starts with one party (this thread).
         final Phaser phaser = new Phaser(1);
 
-        Listener<EVENT> listener = event -> {
-            // This check prevents completing the future if the node has already timed out.
-            if (!future.isDone()) {
-                future.complete(event);
+        Flow.Subscriber<EVENT> listener = new SimpleSubscriber<>() {
+            @Override
+            public void onNext(EVENT event) {
+                if (!future.isDone()) {
+                    future.complete(event);
+                }
+                // The listener's job is done; it arrives and deregisters from the phaser.
+                // This will unblock the main thread if it's waiting.
+                phaser.arriveAndDeregister();
             }
-            // The listener's job is done; it arrives and deregisters from the phaser.
-            // This will unblock the main thread if it's waiting.
-            phaser.arriveAndDeregister();
         };
-
         // Register a new party for the listener, bringing the total to 2.
         phaser.register();
-        observable.addListener(listener);
+        eventPublisher.subscribe(listener);
 
         try {
             // Arrive and wait for the event to arrive (or for timeout).
@@ -60,7 +82,7 @@ public class EventWaitNode<INPUT, EVENT> implements Node<INPUT, EVENT> {
             throw new RuntimeException("Failed while waiting for event.", e);
         } finally {
             // Crucially, always remove the listener to prevent memory leaks.
-            observable.removeListener(listener);
+            listener.onComplete();
         }
     }
 }

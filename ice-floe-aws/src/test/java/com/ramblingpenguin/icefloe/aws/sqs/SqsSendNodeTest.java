@@ -5,7 +5,6 @@ import com.ramblingpenguin.rockhopper.sqs.SqsQueue;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.sqs.model.CreateQueueRequest;
 import software.amazon.awssdk.services.sqs.model.ReceiveMessageRequest;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

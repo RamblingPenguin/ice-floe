@@ -2,8 +2,10 @@ package com.ramblingpenguin.icefloe.core;
 
 import com.ramblingpenguin.icefloe.core.node.ForkSequence;
 import org.junit.jupiter.api.Test;
+
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
