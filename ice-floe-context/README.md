@@ -1,53 +1,85 @@
-# Ice Floe Service
+# Ice Floe Context
 
-This module provides a lightweight service layer for managing and executing Ice Floe sequences in a running application.
+This module provides the stateful execution layer for Ice Floe. It introduces the concept of a `SequenceContext`—an immutable, map-like object that flows through the pipeline—allowing for complex, non-linear data dependencies and thread-safe state management.
 
 ## Core Components
 
-*   **`SequenceService`**: The main entry point for managing the lifecycle and execution of sequences. It handles the underlying `ExecutorService` (defaulting to Virtual Threads) and provides a simple API for running your pipelines.
-*   **`SequenceRegistry`**: A thread-safe registry for storing and retrieving your named `Sequence` instances.
+*   **`ContextualSequence`**: A pipeline of nodes that operates on a `SequenceContext`. It ensures that the context is passed immutably from one step to the next.
+*   **`SequenceContext`**: The immutable state container. It holds values identified by typed `NodeKey`s.
+*   **`NodeKey`**: A type-safe key for storing and retrieving values from the context. It also defines the merge strategy for its associated value.
+*   **`ContextualNode`**: A wrapper that integrates a standard `Node` into a `ContextualSequence`.
+*   **`ContextualForkSequence`**: A specialized scatter-gather node that processes items in parallel, creating a child context for each item, and merging the results back into the main context.
+*   **`SequenceService`**: A service for managing the lifecycle, execution, and persistence of sequences.
 
-## Usage Example
+## Usage Examples
 
-The `SequenceService` makes it easy to register your pre-built sequences and execute them on demand, either synchronously or asynchronously.
+### 1. Contextual Sequence
+Build a pipeline where steps can access data produced by any previous step.
 
 ```java
-import com.ramblingpenguin.icefloe.core.Sequence;
-import com.ramblingpenguin.icefloe.service.SequenceService;
-import java.util.concurrent.CompletableFuture;
+import com.ramblingpenguin.icefloe.context.*;
+import java.io.Serializable;
 
-// 1. Create a service instance
-SequenceService service = new SequenceService();
-service.start();
+// 1. Define data records
+public record InitialInput(String message) implements Serializable {}
+public record WordCount(int count) implements Serializable {}
 
-// 2. Define and register your sequences
-Sequence<String, Integer> textLengthSequence = Sequence.Builder.of(String.class)
-    .then(String::length)
+// 2. Define keys
+NodeKey<InitialInput> initialInputKey = new NodeKey<>("initial", InitialInput.class);
+NodeKey<WordCount> wordCountKey = new NodeKey<>("word-counter", WordCount.class);
+
+// 3. Build the sequence
+ContextualSequence<InitialInput> sequence = ContextualSequence.Builder.of(initialInputKey)
+    .then(
+        initialInputKey,
+        wordCountKey,
+        input -> new WordCount(input.message().split("\\s+").length)
+    )
     .build();
-service.register("text-length", textLengthSequence);
-
-Sequence<Integer, String> reportSequence = Sequence.Builder.of(Integer.class)
-    .then(i -> "The final result is: " + i)
-    .build();
-service.register("report", reportSequence);
-
-// 3. Execute a sequence asynchronously
-CompletableFuture<Integer> lengthFuture = service.execute("text-length", "Hello, World!");
-// ... do other work ...
-Integer length = lengthFuture.join(); // 13
-
-// 4. Execute a sequence synchronously
-String report = service.executeSync("report", length);
-// report -> "The final result is: 13"
-
-// 5. Stop the service when your application shuts down
-service.stop();
 ```
 
-## Key Methods
+### 2. Parallel Contextual Fork-Join
+Process a collection of items in parallel, with each item getting its own isolated child context.
 
-*   **`service.start()`**: Starts the service and its underlying thread pool.
-*   **`service.stop()`**: Gracefully shuts down the thread pool.
-*   **`service.register(String id, Sequence<?, ?> sequence)`**: Adds a sequence to the registry.
-*   **`service.execute(String id, I input)`**: Submits a sequence for asynchronous execution, returning a `CompletableFuture<O>`.
-*   **`service.executeSync(String id, I input)`**: Executes a sequence and blocks until the result is available, returning `O`.
+```java
+import com.ramblingpenguin.icefloe.context.*;
+import java.util.ArrayList;
+import java.util.List;
+
+// Define keys
+NodeKey<List<String>> inputListKey = new NodeKey<>("input-list", (Class<List<String>>)(Class<?>)List.class);
+NodeKey<String> itemKey = new NodeKey<>("item", String.class);
+NodeKey<ArrayList<Integer>> resultsKey = new NodeKey<>("results", (Class<ArrayList<Integer>>)(Class<?>)ArrayList.class);
+
+// Define the logic for a single item
+ContextualSequence<String> itemSequence = ContextualSequence.Builder.of(itemKey)
+    .then(itemKey, resultsKey, item -> new ArrayList<>(List.of(item.length())))
+    .build();
+
+// Create the fork sequence
+ContextualForkSequence<String> forkSequence = new ContextualForkSequence<>(
+    inputListKey, // The key containing the list to scatter
+    itemKey,      // The key to use for each item in the child context
+    itemSequence  // The node to execute for each item
+);
+```
+
+### 3. Sequence Service
+Manage and execute sequences with persistence support.
+
+```java
+import com.ramblingpenguin.icefloe.context.SequenceService;
+
+// 1. Create and start the service
+SequenceService service = SequenceService.builder().build();
+service.start();
+
+// 2. Register a sequence
+service.register(sequence);
+
+// 3. Execute
+CompletableFuture<SequenceContext> future = service.execute(sequence.id(), new InitialInput("Hello World"));
+
+// 4. Stop the service
+service.stop();
+```

@@ -22,12 +22,12 @@ Ice Floe shines when building stateful workflows where steps depend on the outpu
 The following example builds a pipeline that takes a string, calculates its word count, and converts it to uppercase. Both results are available in a type-safe manner upon completion.
 
 ```java
-import com.ramblingpenguin.icefloe.core.context.*;
+import com.ramblingpenguin.icefloe.context.*;
 
 // 1. Define data records for type-safe inputs and outputs
-public record InitialInput(String message) {}
-public record WordCount(int count) {}
-public record Uppercase(String upperMessage) {}
+public record InitialInput(String message) implements Serializable {}
+public record WordCount(int count) implements Serializable {}
+public record Uppercase(String upperMessage) implements Serializable {}
 
 // 2. Define keys to store and retrieve data from the context
 NodeKey<InitialInput> initialInputKey = new NodeKey<>("initial", InitialInput.class);
@@ -35,7 +35,7 @@ NodeKey<WordCount> wordCountKey = new NodeKey<>("word-counter", WordCount.class)
 NodeKey<Uppercase> uppercaseKey = new NodeKey<>("uppercaser", Uppercase.class);
 
 // 3. Build the pipeline using the streamlined builder
-ContextualSequence<InitialInput> pipeline = ContextualSequence.Builder.of(InitialInput.class)
+ContextualSequence<InitialInput> pipeline = ContextualSequence.Builder.of(initialInputKey)
     // "Transformer" node: takes InitialInput, produces WordCount
     .then(
         initialInputKey,
@@ -51,6 +51,7 @@ ContextualSequence<InitialInput> pipeline = ContextualSequence.Builder.of(Initia
     .build();
 
 // 4. Execute and retrieve results
+// Note: In a real application, you would typically use SequenceService to execute the pipeline.
 SequenceContext finalContext = pipeline.apply(new InitialInput("Hello from the Ice Floe world"));
 
 int count = finalContext.get(wordCountKey).orElseThrow().count(); // 6
@@ -64,10 +65,10 @@ System.out.printf("The message has %d words. The uppercase version is: '%s'%n", 
 This repository is a multi-module project. Each module provides a distinct layer of functionality.
 
 *   ### [ice-floe-core](./ice-floe-core/README.md)
-    The foundational library. It provides the core `Node` interface and the builders for creating stateless (`Sequence`) and stateful (`ContextualSequence`) pipelines. If you are new to Ice Floe, start here.
+    The foundational library. It provides the core `Node` interface and the builders for creating stateless (`Sequence`) pipelines.
 
-*   ### [ice-floe-service](./ice-floe-service/README.md)
-    A lightweight service layer for managing and executing your sequences. It provides a `SequenceService` that handles thread pools and provides a simple `execute` and `executeSync` API.
+*   ### [ice-floe-context](./ice-floe-context/README.md)
+    Provides the stateful `ContextualSequence`, `SequenceContext`, and the `SequenceService` for managing and executing sequences.
 
 *   ### [ice-floe-langchain](./ice-floe-langchain/README.md)
     An integration with the [LangChain4j](https://github.com/langchain4j/langchain4j) library, providing pre-built nodes for common AI operations like chat, embeddings, and moderation.
@@ -100,7 +101,7 @@ Then, add the dependencies for the modules you need to your `pom.xml`. For examp
 </dependency>
 <dependency>
     <groupId>com.ramblingpenguin</groupId>
-    <artifactId>ice-floe-langchain</artifactId>
+    <artifactId>ice-floe-context</artifactId>
     <version>1.0-SNAPSHOT</version>
 </dependency>
 ```

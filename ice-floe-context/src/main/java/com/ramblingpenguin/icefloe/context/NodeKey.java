@@ -20,26 +20,6 @@ public record NodeKey<OUTPUT_TYPE>(
         String id,
         Class<OUTPUT_TYPE> outputType
 ) {
-
-    private static final BiFunction<?, ?, ?> THROWING_COMBINER = (v1, v2) -> {
-        if (Objects.equals(v1, v2)) return v1; // If values are the same, no conflict.
-        throw new IllegalStateException("Duplicate key with different values and no merge combiner specified.");
-    };
-
-    @SuppressWarnings("unchecked")
-    private static <T> BiFunction<T, T, T> getDefaultCombiner(Class<T> type) {
-        if (Collection.class.isAssignableFrom(type)) {
-            // If the type is a collection, default to merging the collections.
-            return (v1, v2) -> {
-                Collection<Object> c1 = new ArrayList<>((Collection<?>) v1);
-                c1.addAll((Collection<?>) v2);
-                return (T) c1;
-            };
-        }
-        // Otherwise, default to throwing an exception on conflict.
-        return (BiFunction<T, T, T>) THROWING_COMBINER;
-    }
-
     /**
      * Creates a new NodeKey with a specific ID and a custom combiner.
      *
@@ -47,8 +27,8 @@ public record NodeKey<OUTPUT_TYPE>(
      * @param outputType The class of the value.
      */
     public NodeKey(String id, Class<OUTPUT_TYPE> outputType) {
-        this.id = id;
-        this.outputType = outputType;
+        this.id = Objects.requireNonNull(id);
+        this.outputType = Objects.requireNonNull(outputType);
     }
 
     /**
