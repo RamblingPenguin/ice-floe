@@ -13,7 +13,6 @@
     <artifactId>ice-floe-context</artifactId>
     <description>Creates convenient ways to deploy Ice-Flow sequences as services that can be invoked with as a running service.</description>
     <packaging>jar</packaging>
-    <version>${parent.version}</version>
 
     <properties>
         <maven.compiler.source>21</maven.compiler.source>

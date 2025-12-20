@@ -13,8 +13,6 @@
     <artifactId>ice-floe-aws</artifactId>
     <description>Nodes for interacting with common S3 resources for Ice-Floe processes.</description>
     <packaging>jar</packaging>
-    <version>${parent.version}</version>
-
     <properties>
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
