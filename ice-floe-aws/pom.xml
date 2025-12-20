@@ -11,6 +11,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>ice-floe-aws</artifactId>
+    <name>Ice Floe - AWS</name>
     <description>Nodes for interacting with common S3 resources for Ice-Floe processes.</description>
     <packaging>jar</packaging>
     <properties>

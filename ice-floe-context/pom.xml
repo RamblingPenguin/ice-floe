@@ -11,6 +11,7 @@
         <relativePath>../pom.xml</relativePath>
     </parent>
     <artifactId>ice-floe-context</artifactId>
+    <name>Ice Floe - Context</name>
     <description>Creates convenient ways to deploy Ice-Flow sequences as services that can be invoked with as a running service.</description>
     <packaging>jar</packaging>
 

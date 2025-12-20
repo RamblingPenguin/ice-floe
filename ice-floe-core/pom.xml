@@ -10,7 +10,8 @@
         <version>0.1.1</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-
+    <name>Ice Floe - Core</name>
+    <description>Core components for the Ice Floe execution pipeline.</description>
     <artifactId>ice-floe-core</artifactId>
     <packaging>jar</packaging>
 
