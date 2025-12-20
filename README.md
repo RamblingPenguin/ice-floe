@@ -83,27 +83,28 @@ This repository is a multi-module project. Each module provides a distinct layer
 
 ## Installation
 
-Clone the repository and install it to your local Maven repository:
+Ice Floe is available on Maven Central. Find the latest versions [here](https://mvnrepository.com/artifact/com.ramblingpenguin/ice-floe-core) (for core) and [here](https://mvnrepository.com/artifact/com.ramblingpenguin/ice-floe-context) (for context).
 
-```bash
-git clone https://github.com/ramblingpenguin/ice-floe.git
-cd ice-floe
-mvn clean install
-```
+Add the dependencies for the modules you need to your build file:
 
-Then, add the dependencies for the modules you need to your `pom.xml`. For example:
-
+**Maven:**
 ```xml
 <dependency>
     <groupId>com.ramblingpenguin</groupId>
     <artifactId>ice-floe-core</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.1</version>
 </dependency>
 <dependency>
     <groupId>com.ramblingpenguin</groupId>
     <artifactId>ice-floe-context</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>0.1.1</version>
 </dependency>
+```
+
+**Gradle (Kotlin):**
+```kotlin
+implementation("com.ramblingpenguin:ice-floe-core:0.1.1")
+implementation("com.ramblingpenguin:ice-floe-context:0.1.1")
 ```
 
 ## License
