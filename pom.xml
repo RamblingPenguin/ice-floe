@@ -7,7 +7,7 @@
     <groupId>com.ramblingpenguin</groupId>
     <artifactId>ice-floe</artifactId>
     <packaging>pom</packaging>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.1.1</version>
 
     <name>Ice Floe</name>
     <description>A lightweight, composable, and type-safe execution pipeline library for Java 21.</description>
